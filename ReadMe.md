@@ -185,7 +185,7 @@ PRs welcome! See [CONTRIBUTING.md](CONTRIBUTING.md)
 
 ## 💬 Support
 
-- [GitHub Issues](https://github.com/YOUR_USERNAME/n8n-nodes-solana-x402/issues)
+- [GitHub Issues](https://github.com/blockchain-hq/x402-n8n-mock-node/issues)
 - [n8n Community](https://community.n8n.io/)
 
 ---
