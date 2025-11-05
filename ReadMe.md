@@ -179,10 +179,6 @@ solana airdrop 2 YOUR_ADDRESS --url devnet
 
 MIT
 
-## 🤝 Contributing
-
-PRs welcome! See [CONTRIBUTING.md](CONTRIBUTING.md)
-
 ## 💬 Support
 
 - [GitHub Issues](https://github.com/blockchain-hq/x402-n8n-mock-node/issues)
