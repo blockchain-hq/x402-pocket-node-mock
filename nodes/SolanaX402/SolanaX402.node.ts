@@ -12,21 +12,21 @@ import { SolanaX402Server } from 'x402-server-sdk';
 
 export class SolanaX402 implements INodeType {
   description: INodeTypeDescription = {
-    displayName: 'Solana x402 Mock',
-    name: 'Solanax402Mock',
-    icon: 'file:solana.svg',
+    displayName: 'Pocket node Mock',
+    name: 'PocketNodeMock',
+    icon: 'file:pocket.svg',
     group: ['transform'],
     version: 1,
     subtitle: '={{$parameter["operation"]}}',
     description: 'Return HTTP 402 Payment Required for Solana SOL payments',
     defaults: {
-      name: 'Solana x402 Mock',
+      name: 'Pocket node Mock',
     },
     inputs: ['main'],
     outputs: ['main'],
     credentials: [
       {
-        name: 'solanaX402Api',
+        name: 'pocketMockApi',
         required: true,
       },
     ],
@@ -142,7 +142,7 @@ export class SolanaX402 implements INodeType {
     const returnData: INodeExecutionData[] = [];
 
     // Get credentials
-    const credentials = await this.getCredentials('solanaX402Api');
+    const credentials = await this.getCredentials('pocketMockApi');
     
     // Initialize server
     const server = new SolanaX402Server({

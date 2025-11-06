@@ -4,9 +4,9 @@ import {
 } from 'n8n-workflow';
 
 export class SolanaX402Api implements ICredentialType {
-  name = 'solanaX402Api';
-  displayName = 'Solana x402 API';
-  documentationUrl = 'https://github.com/YOUR_USERNAME/n8n-nodes-solana-x402';
+  name = 'pocketMockApi';
+  displayName = 'Pocket Mock API';
+  documentationUrl = 'https://github.com/blockchain-hq/x402-pocket-node-mock';
   
   properties: INodeProperties[] = [
     {

@@ -1,5 +1,5 @@
 {
-  "name": "@blockchainhq-xyz/n8n-nodes-solana-x402",
+  "name": "@blockchainhq-xyz/n8n-nodes-pocket-mock",
   "version": "1.0.1",
   "description": "n8n node for Solana x402 payment protocol - Return HTTP 402 Payment Required",
   "keywords": [
@@ -11,23 +11,23 @@
     "http-402"
   ],
   "license": "MIT",
-  "homepage": "https://github.com/blockchain-hq/x402-n8n-mock-node",
+  "homepage": "https://github.com/blockchain-hq/x402-pocket-node-mock",
   "repository": {
     "type": "git",
-    "url": "https://github.com/blockchain-hq/x402-n8n-mock-node.git"
+    "url": "https://github.com/blockchain-hq/x402-pocket-node-mock.git"
   },
   "author": {
     "name": "Mahima Thacker"
   },
   "main": "index.js",
   "scripts": {
-    "build": "tsc && cp nodes/SolanaX402/solana.svg dist/nodes/SolanaX402/ && cp nodes/SolanaX402/SolanaX402.node.json dist/nodes/SolanaX402/ 2>/dev/null || true",
+    "build": "tsc && cp nodes/SolanaX402/pocket.svg dist/nodes/SolanaX402/ && cp nodes/SolanaX402/SolanaX402.node.json dist/nodes/SolanaX402/ 2>/dev/null || true",
     "dev": "tsc --watch",
     "format": "prettier nodes credentials --write",
     "lint": "eslint nodes credentials package.json",
     "lintfix": "eslint nodes credentials package.json --fix",
     "prepublishOnly": "npm run build",
-    "test": "npx @n8n/scan-community-package n8n-nodes-solana-x402"
+    "test": "npx @n8n/scan-community-package n8n-nodes-pocket-mock"
   },
   "files": [
     "dist"

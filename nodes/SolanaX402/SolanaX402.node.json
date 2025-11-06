@@ -1,17 +1,17 @@
 {
-    "node": "n8n-nodes-base.solanaX402",
+    "node": "n8n-nodes-base.pocketNodeMock",
     "nodeVersion": "1.0",
     "codexVersion": "1.0",
     "categories": ["Finance & Accounting"],
     "resources": {
       "credentialDocumentation": [
         {
-          "url": "https://github.com/YOUR_USERNAME/n8n-nodes-solana-x402"
+          "url": "https://github.com/blockchain-hq/x402-pocket-node-mock"
         }
       ],
       "primaryDocumentation": [
         {
-          "url": "https://github.com/YOUR_USERNAME/n8n-nodes-solana-x402/blob/main/README.md"
+          "url": "https://github.com/blockchain-hq/x402-pocket-node-mock/blob/main/README.md"
         }
       ]
     },
