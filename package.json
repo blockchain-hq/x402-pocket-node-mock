@@ -8,11 +8,14 @@
     "solana",
     "x402",
     "payment",
-    "usdc",
     "http-402"
   ],
   "license": "MIT",
-  "homepage": "https://github.com/YOUR_USERNAME/n8n-nodes-solana-x402",
+  "homepage": "https://github.com/blockchain-hq/x402-n8n-mock-node",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/blockchain-hq/x402-n8n-mock-node.git"
+  },
   "author": {
     "name": "Mahima Thacker"
   },
