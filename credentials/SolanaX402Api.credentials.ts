@@ -4,8 +4,8 @@ import {
 } from 'n8n-workflow';
 
 export class SolanaX402Api implements ICredentialType {
-  name = 'pocketMockApi';
-  displayName = 'Pocket Mock API';
+  name = 'pocketNodeApi';
+  displayName = 'Pocket Node API';
   documentationUrl = 'https://github.com/blockchain-hq/x402-pocket-node-mock';
   
   properties: INodeProperties[] = [
@@ -27,21 +27,13 @@ export class SolanaX402Api implements ICredentialType {
       description: 'Solana network to use for payment verification',
     },
     {
-      displayName: 'Recipient Address',
-      name: 'recipientAddress',
+      displayName: 'Wallet Address',
+      name: 'walletAddress',
       type: 'string',
       default: '',
       required: true,
       placeholder: '7vfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs',
-      description: 'Your Solana wallet address to receive SOL payments',
-    },
-    {
-      displayName: 'RPC URL',
-      name: 'rpcUrl',
-      type: 'string',
-      default: '',
-      placeholder: 'https://api.devnet.solana.com',
-      description: 'Optional custom RPC endpoint URL',
+      description: 'Your Solana wallet address to receive USDC payments',
     },
   ];
 }

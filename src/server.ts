@@ -3,7 +3,6 @@
 import {
   Connection,
   PublicKey,
-  LAMPORTS_PER_SOL,
 } from '@solana/web3.js';
 import {
   X402ServerConfig,
@@ -15,13 +14,16 @@ import {
 import {
   SOLANA_DEVNET_RPC,
   SOLANA_MAINNET_RPC,
-  SOL_DECIMALS,
+  USDC_DECIMALS,
+  USDC_MAINNET_MINT,
+  USDC_DEVNET_MINT,
   X402_VERSION,
 } from './constants';
 
 export class SolanaX402Server {
   private connection: Connection;
   private config: X402ServerConfig;
+  private usdcMintAddress: PublicKey;
 
   constructor(config: X402ServerConfig) {
     this.config = config;
@@ -31,36 +33,54 @@ export class SolanaX402Server {
       (config.network === 'devnet' ? SOLANA_DEVNET_RPC : SOLANA_MAINNET_RPC);
     
     this.connection = new Connection(rpcUrl, 'confirmed');
+    
+    // Set USDC mint address
+    const mintAddress = config.usdcMintAddress || 
+      (config.network === 'devnet' ? USDC_DEVNET_MINT : USDC_MAINNET_MINT);
+    
+    try {
+      this.usdcMintAddress = new PublicKey(mintAddress);
+    } catch (error) {
+      throw new Error(`Invalid USDC mint address: ${mintAddress}. ${error instanceof Error ? error.message : String(error)}`);
+    }
   }
 
   /**
-   * Initialize the server (simplified for SOL - no token accounts needed)
+   * Initialize the server for USDC token payments
    */
   async initialize(): Promise<void> {
     // Verify recipient address is valid
     try {
       new PublicKey(this.config.recipientAddress);
       console.log('✅ Server initialized with recipient:', this.config.recipientAddress);
+      console.log('✅ USDC mint address:', this.usdcMintAddress.toBase58());
     } catch (error) {
-      throw new Error('Invalid recipient address');
+      throw new Error(`Invalid recipient address: ${this.config.recipientAddress}. ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 
   /**
-   * Create payment requirements for HTTP 402 response (SOL)
+   * Create payment requirements for HTTP 402 response (USDC)
    */
   async createPaymentRequirements(
-    amountInSol: number,
+    amountInUsdc: number,
     resourceId?: string
   ): Promise<PaymentRequirements> {
+    // Ensure USDC mint address is set
+    if (!this.usdcMintAddress) {
+      throw new Error('USDC mint address not initialized');
+    }
+    
+    const usdcMintAddressString = this.usdcMintAddress.toBase58();
+    
     const paymentOption: PaymentOption = {
-      id: resourceId || `sol-${Date.now()}`,
+      id: resourceId || `usdc-${Date.now()}`,
       scheme: 'solana',
       network: this.config.network,
       recipient: this.config.recipientAddress,
-      token: 'native', // 'native' means SOL payment
-      amount: amountInSol.toString(),
-      decimals: SOL_DECIMALS,
+      token: usdcMintAddressString, // USDC mint address (not 'native')
+      amount: amountInUsdc.toString(),
+      decimals: USDC_DECIMALS,
     };
 
     return {
@@ -70,13 +90,13 @@ export class SolanaX402Server {
   }
 
   /**
-   * Create a proper HTTP 402 response (SOL)
+   * Create a proper HTTP 402 response (USDC)
    */
   async create402Response(
-    amountInSol: number,
+    amountInUsdc: number,
     resourceId?: string
   ): Promise<X402Response> {
-    const requirements = await this.createPaymentRequirements(amountInSol, resourceId);
+    const requirements = await this.createPaymentRequirements(amountInUsdc, resourceId);
     
     return {
       statusCode: 402,
@@ -89,11 +109,11 @@ export class SolanaX402Server {
   }
 
   /**
-   * Verify a SOL payment transaction
+   * Verify a USDC payment transaction
    */
   async verifyPayment(
     signature: string,
-    expectedAmountSol: number,
+    expectedAmountUsdc: number,
     maxAgeSeconds: number = 300
   ): Promise<PaymentVerification> {
     try {
@@ -130,46 +150,85 @@ export class SolanaX402Server {
         };
       }
 
-      // For SOL transfers, check the account balance changes
-      const recipientPubkey = new PublicKey(this.config.recipientAddress);
+      // For USDC token transfers, check token account balance changes
+      const usdcMintStr = this.usdcMintAddress.toBase58();
       
-      // Get pre and post balances
-      const accountKeys = tx.transaction.message.getAccountKeys();
-      const recipientIndex = accountKeys.staticAccountKeys.findIndex(
-        (key) => key.equals(recipientPubkey)
-      );
+      // Get token account balances
+      const preTokenBalances = tx.meta?.preTokenBalances || [];
+      const postTokenBalances = tx.meta?.postTokenBalances || [];
 
-      if (recipientIndex === -1) {
-        return {
-          valid: false,
-          error: 'Recipient not found in transaction',
-        };
+      // Find the recipient's token account balance change for USDC
+      let receivedUsdc = 0;
+      let senderAddress = '';
+
+      // Match pre and post token balances by account index
+      for (const postBalance of postTokenBalances) {
+        if (postBalance.mint === usdcMintStr) {
+          const accountIndex = postBalance.accountIndex;
+          const owner = postBalance.owner;
+          
+          // Check if this is the recipient's token account
+          if (owner === this.config.recipientAddress) {
+            // Find corresponding pre-balance
+            const preBalance = preTokenBalances.find(
+              (pre) => pre.accountIndex === accountIndex && pre.mint === usdcMintStr
+            );
+            
+            const preAmount = preBalance ? parseFloat(preBalance.uiTokenAmount.uiAmountString || '0') : 0;
+            const postAmount = parseFloat(postBalance.uiTokenAmount.uiAmountString || '0');
+            receivedUsdc = postAmount - preAmount;
+            
+            // Find sender by looking for token account that decreased
+            for (const preBalanceItem of preTokenBalances) {
+              if (preBalanceItem.mint === usdcMintStr && preBalanceItem.accountIndex !== accountIndex) {
+                const preSenderAmount = parseFloat(preBalanceItem.uiTokenAmount.uiAmountString || '0');
+                const postSenderBalance = postTokenBalances.find(
+                  (post) => post.accountIndex === preBalanceItem.accountIndex && post.mint === usdcMintStr
+                );
+                const postSenderAmount = postSenderBalance ? parseFloat(postSenderBalance.uiTokenAmount.uiAmountString || '0') : 0;
+                
+                if (preSenderAmount > postSenderAmount && preSenderAmount - postSenderAmount === receivedUsdc) {
+                  senderAddress = preBalanceItem.owner || '';
+                  break;
+                }
+              }
+            }
+            
+            // Fallback: use first signer if sender not found from token balances
+            if (!senderAddress) {
+              const accountKeys = tx.transaction.message.getAccountKeys();
+              if (accountKeys.staticAccountKeys.length > 0) {
+                senderAddress = accountKeys.staticAccountKeys[0].toBase58();
+              }
+            }
+            break;
+          }
+        }
       }
 
-      const preBalance = tx.meta?.preBalances[recipientIndex] || 0;
-      const postBalance = tx.meta?.postBalances[recipientIndex] || 0;
-      const receivedLamports = postBalance - preBalance;
-      const receivedSol = receivedLamports / LAMPORTS_PER_SOL;
+      if (receivedUsdc <= 0) {
+        return {
+          valid: false,
+          error: 'No USDC transfer found to recipient address',
+        };
+      }
 
       // Check amount (allow small tolerance for rounding)
       const tolerance = 0.0001;
 
-      if (Math.abs(receivedSol - expectedAmountSol) > tolerance) {
+      if (Math.abs(receivedUsdc - expectedAmountUsdc) > tolerance) {
         return {
           valid: false,
-          error: `Amount mismatch: expected ${expectedAmountSol} SOL, got ${receivedSol} SOL`,
+          error: `Amount mismatch: expected ${expectedAmountUsdc} USDC, got ${receivedUsdc} USDC`,
         };
       }
-
-      // Find sender (first signer)
-      const senderPubkey = accountKeys.staticAccountKeys[0];
 
       return {
         valid: true,
         signature,
-        amount: receivedSol,
-        token: 'SOL',
-        from: senderPubkey.toBase58(),
+        amount: receivedUsdc,
+        token: 'USDC',
+        from: senderAddress,
         to: this.config.recipientAddress,
         timestamp: txTime,
       };
@@ -217,11 +276,12 @@ export class SolanaX402Server {
   }
 
   /**
-   * Check recipient SOL balance
+   * Check recipient USDC balance
    */
   async getRecipientBalance(): Promise<number> {
-    const pubkey = new PublicKey(this.config.recipientAddress);
-    const balance = await this.connection.getBalance(pubkey);
-    return balance / LAMPORTS_PER_SOL;
+    // Note: This would require finding the associated token account
+    // For now, this is a placeholder - full implementation would need
+    // to derive the associated token account address and query its balance
+    throw new Error('getRecipientBalance not yet implemented for USDC token accounts');
   }
 }

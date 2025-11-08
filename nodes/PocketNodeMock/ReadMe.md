@@ -1,6 +1,6 @@
 # Pocket node Mock
 
-n8n community node for Solana x402 payment protocol. Return HTTP 402 Payment Required responses for native payments on Solana.
+n8n community node for Solana x402 payment protocol. Return HTTP 402 Payment Required responses for USDC token payments on Solana.
 
 [n8n](https://n8n.io/) is a workflow automation platform.
 
@@ -22,10 +22,10 @@ npm install @blockchainhq-xyz/n8n-nodes-pocket-mock
 
 ### Return 402 Payment Required
 
-Returns an HTTP 402 status with payment requirements for clients to pay in Solana SOL.
+Returns an HTTP 402 status with payment requirements for clients to pay in USDC on Solana.
 
 **Parameters:**
-- **Amount (SOL)**: Amount required (e.g., 0.01 for 1 cent)
+- **Amount (USDC)**: Amount required (e.g., 0.01 for 1 cent)
 - **Resource ID**: Optional unique identifier
 
 **Output:**
@@ -49,11 +49,11 @@ Returns an HTTP 402 status with payment requirements for clients to pay in Solan
 
 ### Verify Payment
 
-Verifies a Solana SOL payment transaction on-chain.
+Verifies a Solana USDC payment transaction on-chain.
 
 **Parameters:**
 - **Transaction Signature**: Solana transaction signature
-- **Expected Amount**: Amount to verify (SOL)
+- **Expected Amount**: Amount to verify (USDC)
 - **Max Age**: Maximum transaction age in seconds
 
 **Output:**

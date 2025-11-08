@@ -71,7 +71,7 @@ Returns 402 response requiring SOL payment.
     "paymentOptions": [{
       "amount": "0.01",
       "recipient": "YOUR_WALLET",
-      "token": "native"
+      "token": "USDC"
     }]
   }
 }

@@ -38,7 +38,7 @@
       "dist/credentials/SolanaX402Api.credentials.js"
     ],
     "nodes": [
-      "dist/nodes/SolanaX402/SolanaX402.node.js"
+      "dist/nodes/PocketNodeMock/PocketNodeMock.node.js"
     ]
   },
   "devDependencies": {
